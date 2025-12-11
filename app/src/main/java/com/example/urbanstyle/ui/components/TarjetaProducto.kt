@@ -37,11 +37,8 @@ fun TarjetaProducto(
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            // Imagen del producto
+        Column(modifier = Modifier.fillMaxWidth()) {
+
             Image(
                 painter = painterResource(id = producto.imagenRes),
                 contentDescription = producto.nombre,
@@ -52,7 +49,6 @@ fun TarjetaProducto(
                 contentScale = ContentScale.Crop
             )
 
-            // Información del producto
             Column(
                 modifier = Modifier
                     .padding(horizontal = 10.dp, vertical = 6.dp)
@@ -83,7 +79,6 @@ fun TarjetaProducto(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Botones dentro de la card
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -102,6 +97,7 @@ fun TarjetaProducto(
 
                     Button(
                         onClick = { onAgregarCarrito?.invoke() },
+                        enabled = onAgregarCarrito != null, // ✅ ayuda a detectar si está conectado
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(vertical = 2.dp)
                     ) {

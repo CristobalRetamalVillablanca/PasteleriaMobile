@@ -16,6 +16,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +40,10 @@ fun CartScreen(
 ) {
     val cartItems by cartViewModel.cartItems.collectAsState()
     val total by cartViewModel.totalPrice.collectAsState()
+
+    // ✅ Snackbar para “Pago exitoso”
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -61,11 +68,20 @@ fun CartScreen(
         },
         bottomBar = {
             if (cartItems.isNotEmpty()) {
-                CartBottomBar(total = total, onPayClick = {
-                    // Aquí iría la lógica de pago final
-                }, viewModel = cartViewModel)
+                CartBottomBar(
+                    total = total,
+                    onPayClick = {
+                        // ✅ Simular pago: mensaje + limpiar carrito
+                        scope.launch {
+                            snackbarHostState.showSnackbar("✅ Pago exitoso")
+                        }
+                        cartViewModel.limpiarCarrito()
+                    },
+                    viewModel = cartViewModel
+                )
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) } // ✅
     ) { padding ->
 
         if (cartItems.isEmpty()) {
@@ -176,7 +192,10 @@ fun CartItemRow(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(8.dp))
+                    .background(
+                        MaterialTheme.colorScheme.secondaryContainer,
+                        RoundedCornerShape(8.dp)
+                    )
                     .padding(4.dp)
             ) {
                 IconButton(onClick = onDecrease, modifier = Modifier.size(30.dp)) {
@@ -225,7 +244,9 @@ fun CartBottomBar(total: Int, onPayClick: () -> Unit, viewModel: CartViewModel) 
 
             Button(
                 onClick = onPayClick,
-                modifier = Modifier.fillMaxWidth().height(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Ir a Pagar", fontSize = 18.sp)

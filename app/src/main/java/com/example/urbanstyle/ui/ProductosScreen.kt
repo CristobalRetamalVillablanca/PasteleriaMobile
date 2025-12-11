@@ -9,19 +9,12 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.Font
@@ -29,32 +22,32 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.urbanstyle.R
 import com.example.urbanstyle.data.repository.ProductoRepository
 import com.example.urbanstyle.navigation.Rutas
+import com.example.urbanstyle.ui.cart.CartViewModel
 import com.example.urbanstyle.ui.components.BottomBar
 import com.example.urbanstyle.ui.components.TarjetaProducto
 import com.example.urbanstyle.viewmodel.ProductoViewModel
+import kotlinx.coroutines.launch
 import java.text.Normalizer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductosScreen(
     navController: NavHostController,
+    cartViewModel: CartViewModel,
     vm: ProductoViewModel = viewModel()
 ) {
     val lista by vm.productos.collectAsState()
 
     val pacifico = FontFamily(Font(R.font.pacifico))
 
-    // categorías (+ “Todas”)
     val repo = remember { ProductoRepository() }
     val categorias = remember { listOf("Todas") + repo.obtenerCategorias() }
 
-    // estado UI
     var categoriaSeleccionada by remember { mutableStateOf("Todas") }
     var textoBusqueda by remember { mutableStateOf("") }
 
@@ -72,6 +65,10 @@ fun ProductosScreen(
         }
     }
 
+    // ✅ Snackbar
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -85,7 +82,8 @@ fun ProductosScreen(
                 }
             )
         },
-        bottomBar = { BottomBar(navController = navController) }
+        bottomBar = { BottomBar(navController = navController) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) } // ✅
     ) { inner ->
 
         LazyVerticalGrid(
@@ -96,7 +94,6 @@ fun ProductosScreen(
             contentPadding = PaddingValues(12.dp)
         ) {
 
-            // ===== Buscador (ancho completo)
             item(span = { GridItemSpan(maxLineSpan) }) {
                 OutlinedTextField(
                     value = textoBusqueda,
@@ -118,7 +115,6 @@ fun ProductosScreen(
                 )
             }
 
-            // ===== Chips de categorías (ancho completo)
             item(span = { GridItemSpan(maxLineSpan) }) {
                 LazyRow(contentPadding = PaddingValues(horizontal = 4.dp)) {
                     items(categorias.size) { idx ->
@@ -135,7 +131,6 @@ fun ProductosScreen(
                 }
             }
 
-            // ===== Grilla filtrada
             items(productosFiltrados, key = { it.codigo }) { producto ->
                 TarjetaProducto(
                     producto = producto,
@@ -144,11 +139,18 @@ fun ProductosScreen(
                         navController.navigate(
                             Rutas.PRODUCTO_DETALLE.replace("{codigo}", producto.codigo)
                         )
+                    },
+                    onAgregarCarrito = {
+                        cartViewModel.agregarProducto(producto)
+
+                        // ✅ Mensaje "agregado"
+                        scope.launch {
+                            snackbarHostState.showSnackbar("¡${producto.nombre} agregado al carrito!")
+                        }
                     }
                 )
             }
 
-            // ===== Estado vacío
             if (productosFiltrados.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
