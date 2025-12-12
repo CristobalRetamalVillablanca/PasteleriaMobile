@@ -24,6 +24,7 @@ import com.example.urbanstyle.data.model.Producto
 import com.example.urbanstyle.data.repository.ProductoRepository
 import com.example.urbanstyle.navigation.Rutas
 import com.example.urbanstyle.ui.components.BottomBar
+import com.example.urbanstyle.ui.components.ClimaCard
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -59,6 +60,11 @@ fun HomeScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
+
+            // ✅ CLIMA ARRIBA DE TODO
+            item {
+                ClimaCard()
+            }
 
             // --- Header ---
             item {
@@ -108,7 +114,6 @@ fun HomeScreen(navController: NavHostController) {
                 ) {
                     Text("Ver productos", color = MaterialTheme.colorScheme.onSecondary)
                 }
-
             }
 
             // --- Título destacados ---
@@ -133,19 +138,15 @@ fun HomeScreen(navController: NavHostController) {
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp)) // Espacio extra antes del botón
+                Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = {
-                        // Asegúrate de tener definida esta ruta en tu NavHost
-                        navController.navigate(Rutas.API_EXTERNA)
-                    },
+                    onClick = { navController.navigate(Rutas.API_EXTERNA) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Ir a Posts")
                 }
             }
-
         }
     }
 }
@@ -165,7 +166,6 @@ private fun DestacadoVerticalCard(
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Imagen grande
         Image(
             painter = painterResource(id = producto.imagenRes),
             contentDescription = producto.nombre,
@@ -176,7 +176,6 @@ private fun DestacadoVerticalCard(
             contentScale = ContentScale.Crop
         )
 
-        // Texto + precio + botones
         Column(Modifier.padding(16.dp)) {
             Text(
                 text = producto.nombre,
@@ -196,11 +195,15 @@ private fun DestacadoVerticalCard(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 OutlinedButton(
                     onClick = onVerDetalle,
                     modifier = Modifier.weight(1f)
                 ) { Text("Ver detalle") }
+
                 Button(
                     onClick = onAgregarCarrito,
                     modifier = Modifier.weight(1f)
